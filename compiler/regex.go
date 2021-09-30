@@ -69,8 +69,6 @@ import (
 	"fmt"
 	"regexp"
 	"time"
-
-	"github.com/dlclark/regexp2"
 )
 
 const regexp2MatchTimeout = time.Millisecond * 250
@@ -110,13 +108,13 @@ func delimiterIndices(s string, delimiterStart, delimiterEnd byte) ([]int, error
 //  reg, err := compiler.CompileRegex("foo:bar.baz:<[0-9]{2,10}>", '<', '>')
 //  // if err != nil ...
 //  reg.MatchString("foo:bar.baz:123")
-func CompileRegex(tpl string, delimiterStart, delimiterEnd byte) (*regexp2.Regexp, error) {
+func CompileRegex(tpl string, delimiterStart, delimiterEnd byte) (*regexp.Regexp, error) {
 	// Check if it is well-formed.
 	idxs, errBraces := delimiterIndices(tpl, delimiterStart, delimiterEnd)
 	if errBraces != nil {
 		return nil, errBraces
 	}
-	varsR := make([]*regexp2.Regexp, len(idxs)/2)
+	varsR := make([]*regexp.Regexp, len(idxs)/2)
 	pattern := bytes.NewBufferString("")
 	pattern.WriteByte('^')
 
@@ -129,11 +127,10 @@ func CompileRegex(tpl string, delimiterStart, delimiterEnd byte) (*regexp2.Regex
 		// Build the regexp pattern.
 		varIdx := i / 2
 		fmt.Fprintf(pattern, "%s(%s)", regexp.QuoteMeta(raw), patt)
-		reg, err := regexp2.Compile(fmt.Sprintf("^%s$", patt), regexp2.RE2)
+		reg, err := regexp.Compile(fmt.Sprintf("^%s$", patt))
 		if err != nil {
 			return nil, err
 		}
-		reg.MatchTimeout = regexp2MatchTimeout
 		varsR[varIdx] = reg
 	}
 
@@ -143,11 +140,10 @@ func CompileRegex(tpl string, delimiterStart, delimiterEnd byte) (*regexp2.Regex
 	pattern.WriteByte('$')
 
 	// Compile full regexp.
-	reg, errCompile := regexp2.Compile(pattern.String(), regexp2.RE2)
+	reg, errCompile := regexp.Compile(pattern.String())
 	if errCompile != nil {
 		return nil, errCompile
 	}
-	reg.MatchTimeout = regexp2MatchTimeout
 
 	return reg, nil
 }

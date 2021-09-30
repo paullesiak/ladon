@@ -24,4 +24,4 @@ type matcher interface {
 	Matches(p Policy, haystack []string, needle string) (matches bool, error error)
 }
 
-var DefaultMatcher = NewRegexpMatcher(1024 * 16)
+var DefaultMatcher = NewRegexpMatcher(16 * 1024)

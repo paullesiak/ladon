@@ -21,10 +21,12 @@
 package ladon
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/dlclark/regexp2"
-	"github.com/hashicorp/golang-lru"
+	"regexp"
+
+	"github.com/dgraph-io/ristretto"
 	"github.com/pkg/errors"
 
 	"github.com/ory/ladon/compiler"
@@ -32,62 +34,69 @@ import (
 
 func NewRegexpMatcher(size int) *RegexpMatcher {
 	if size <= 0 {
-		size = 512
+		size = 16 * 1024
 	}
 
 	// golang-lru only returns an error if the cache's size is 0. This, we can safely ignore this error.
-	cache, _ := lru.New(size)
+	// cache, _ := lru.NewARC(size)
+	cache, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters: 10e7,
+		MaxCost:     1 << 30,
+		BufferItems: 64,
+	})
+	if err != nil {
+		panic(err)
+	}
 	return &RegexpMatcher{
 		Cache: cache,
 	}
 }
 
 type RegexpMatcher struct {
-	*lru.Cache
+	Cache *ristretto.Cache
 
-	C map[string]*regexp2.Regexp
+	C map[string]*regexp.Regexp
 }
 
-func (m *RegexpMatcher) get(pattern string) *regexp2.Regexp {
+func (m *RegexpMatcher) get(pattern string) (bool, bool) {
 	if val, ok := m.Cache.Get(pattern); !ok {
-		return nil
-	} else if reg, ok := val.(*regexp2.Regexp); !ok {
-		return nil
+		return false, false
+	} else if match, ok := val.(bool); !ok {
+		return false, true
 	} else {
-		return reg
+		return match, true
 	}
 }
 
-func (m *RegexpMatcher) set(pattern string, reg *regexp2.Regexp) {
-	m.Cache.Add(pattern, reg)
+func (m *RegexpMatcher) set(pattern string, match bool) {
+	m.Cache.Set(pattern, match, 0)
 }
 
 // Matches a needle with an array of regular expressions and returns true if a match was found.
 func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (bool, error) {
-	var reg *regexp2.Regexp
+	key := fmt.Sprintf("%s+%s", strings.Join(haystack, ","), needle)
+	if matched, ok := m.get(key); ok {
+		if matched {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+
+	var reg *regexp.Regexp
 	var err error
+	matched := false
 	for _, h := range haystack {
 
 		// This means that the current haystack item does not contain a regular expression
 		if strings.Count(h, string(p.GetStartDelimiter())) == 0 {
 			// If we have a simple string match, we've got a match!
 			if h == needle {
-				return true, nil
+				matched = true
+				break
 			}
 
 			// Not string match, but also no regexp, continue with next haystack item
-			continue
-		}
-
-		if reg = m.get(h); reg != nil {
-			if matched, err := reg.MatchString(needle); err != nil {
-				// according to regexp2 documentation: https://github.com/dlclark/regexp2#usage
-				// The only error that the *Match* methods should return is a Timeout if you set the
-				// re.MatchTimeout field. Any other error is a bug in the regexp2 package.
-				return false, errors.WithStack(err)
-			} else if matched {
-				return true, nil
-			}
 			continue
 		}
 
@@ -96,15 +105,11 @@ func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (boo
 			return false, errors.WithStack(err)
 		}
 
-		m.set(h, reg)
-		if matched, err := reg.MatchString(needle); err != nil {
-			// according to regexp2 documentation: https://github.com/dlclark/regexp2#usage
-			// The only error that the *Match* methods should return is a Timeout if you set the
-			// re.MatchTimeout field. Any other error is a bug in the regexp2 package.
-			return false, errors.WithStack(err)
-		} else if matched {
-			return true, nil
+		matched = reg.MatchString(needle)
+		if matched {
+			break
 		}
 	}
-	return false, nil
+	m.set(key, matched)
+	return matched, nil
 }

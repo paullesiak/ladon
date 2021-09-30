@@ -25,9 +25,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"sort"
+
 	. "github.com/ory/ladon"
 	"github.com/ory/pagination"
-	"sort"
 )
 
 // MemoryManager is an in-memory (non-persistent) implementation of Manager.
