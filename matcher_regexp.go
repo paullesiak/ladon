@@ -83,8 +83,8 @@ func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (boo
 		}
 	}
 
-	var reg *regexp.Regexp
-	var err error
+	//var reg *regexp.Regexp
+	//var err error
 	matched := false
 	for _, h := range haystack {
 
@@ -100,12 +100,12 @@ func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (boo
 			continue
 		}
 
-		reg, err = compiler.CompileRegex(h, p.GetStartDelimiter(), p.GetEndDelimiter())
+		reg, err := compiler.CompileRegex(h, p.GetStartDelimiter(), p.GetEndDelimiter())
 		if err != nil {
 			return false, errors.WithStack(err)
 		}
 
-		matched = reg.MatchString(needle)
+		matched, err = reg.MatchString(needle)
 		if matched {
 			break
 		}

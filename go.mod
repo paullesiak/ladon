@@ -1,6 +1,6 @@
 module github.com/paullesiak/ladon
 
-go 1.17
+go 1.18
 
 replace github.com/ory/ladon => github.com/paullesiak/ladon v1.2.1-0.20210414225852-5fb7f7892024
 
@@ -24,6 +24,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20181023162649-9b4f9f5ad519 // indirect
-	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )

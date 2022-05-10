@@ -1,3 +1,6 @@
+//go:build test
+// +build test
+
 /*
  * Copyright © 2016-2018 Aeneas Rekkas <aeneas+oss@aeneas.io>
  *
@@ -22,6 +25,7 @@ package ladon_test
 
 import (
 	"fmt"
+	"github.com/paullesiak/ladon"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -222,7 +226,7 @@ func TestLadon(t *testing.T) {
 		require.NoError(t, err)
 		p, err := warden.Manager.Get(fmt.Sprintf("%d", i))
 		if err == nil {
-			AssertPolicyEqual(t, p, polices[0])
+			ladon.AssertPolicyEqual(t, p, polices[0])
 		}
 	}
 
