@@ -27,8 +27,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/ory/ladon"
-	. "github.com/ory/ladon/manager/memory"
+	. "github.com/paullesiak/ladon/manager/memory"
+
+	. "github.com/paullesiak/ladon"
 )
 
 func TestAuditLogger(t *testing.T) {

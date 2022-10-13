@@ -68,10 +68,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
-	"time"
 )
-
-const regexp2MatchTimeout = time.Millisecond * 250
 
 // delimiterIndices returns the first level delimiter indices from a string.
 // It returns an error in case of unbalanced delimiters.

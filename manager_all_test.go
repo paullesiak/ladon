@@ -27,8 +27,9 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/ory/ladon"
-	. "github.com/ory/ladon/manager/memory"
+	. "github.com/paullesiak/ladon/manager/memory"
+
+	. "github.com/paullesiak/ladon"
 )
 
 var managers = map[string]Manager{}

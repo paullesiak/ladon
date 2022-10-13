@@ -21,9 +21,9 @@
 package compiler
 
 import (
+	"regexp"
 	"testing"
 
-	"github.com/dlclark/regexp2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,10 +66,8 @@ func TestRegexCompiler(t *testing.T) {
 		}
 
 		t.Logf("Case %d compiled to: %s", k, result.String())
-		re := regexp2.MustCompile(result.String(), regexp2.RE2)
-		ok, err := re.MatchString(c.matchAgainst)
-		assert.Nil(t, err, "Case %d", k)
+		re := regexp.MustCompile(result.String())
+		ok := re.MatchString(c.matchAgainst)
 		assert.Equal(t, !c.failMatch, ok, "Case %d", k)
-
 	}
 }

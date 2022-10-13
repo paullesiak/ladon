@@ -5,10 +5,10 @@ env:
 
 language: go
 
-go_import_path: github.com/ory/ladon
+go_import_path: github.com/paullesiak/ladon
 
 go:
-  - 1.11
+  - 1.19
 
 install:
   - go get github.com/mattn/goveralls golang.org/x/tools/cmd/cover github.com/pierrre/gotestcover

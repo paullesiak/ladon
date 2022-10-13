@@ -22,14 +22,13 @@ package ladon
 
 import (
 	"fmt"
-	"strings"
-
 	"regexp"
+	"strings"
 
 	"github.com/dgraph-io/ristretto"
 	"github.com/pkg/errors"
 
-	"github.com/ory/ladon/compiler"
+	"github.com/paullesiak/ladon/compiler"
 )
 
 func NewRegexpMatcher(size int) *RegexpMatcher {
@@ -83,8 +82,6 @@ func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (boo
 		}
 	}
 
-	//var reg *regexp.Regexp
-	//var err error
 	matched := false
 	for _, h := range haystack {
 
@@ -105,7 +102,7 @@ func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (boo
 			return false, errors.WithStack(err)
 		}
 
-		matched, err = reg.MatchString(needle)
+		matched = reg.MatchString(needle)
 		if matched {
 			break
 		}

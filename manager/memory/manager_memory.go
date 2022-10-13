@@ -21,14 +21,14 @@
 package memory
 
 import (
+	"sort"
 	"sync"
 
 	"github.com/pkg/errors"
 
-	"sort"
-
-	. "github.com/ory/ladon"
 	"github.com/ory/pagination"
+
+	. "github.com/paullesiak/ladon"
 )
 
 // MemoryManager is an in-memory (non-persistent) implementation of Manager.
