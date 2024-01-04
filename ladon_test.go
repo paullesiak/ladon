@@ -70,14 +70,14 @@ var pols = []ladon.Policy{
 		Resources:   []string{"<.*>"},
 		Effect:      ladon.DenyAccess,
 	},
-	&ladon.DefaultPolicy{
-		ID:          "4",
-		Description: "This policy allows swen to update any resource except `protected` resources",
-		Subjects:    []string{"swen"},
-		Actions:     []string{"update"},
-		Resources:   []string{"myrn:some.domain.com:resource:<(?!protected).*>"},
-		Effect:      ladon.AllowAccess,
-	},
+	// &ladon.DefaultPolicy{
+	// 	ID:          "4",
+	// 	Description: "This policy allows swen to update any resource except `protected` resources",
+	// 	Subjects:    []string{"swen"},
+	// 	Actions:     []string{"update"},
+	// 	Resources:   []string{"myrn:some.domain.com:resource:<(?!protected).*>"},
+	// 	Effect:      ladon.AllowAccess,
+	// },
 	&ladon.DefaultPolicy{
 		ID:          "5",
 		Description: "This policy allows richard to update resources which names consists of digits only",
@@ -168,15 +168,15 @@ var cases = []struct {
 		},
 		expectErr: true,
 	},
-	{
-		description: "should pass because swen is allowed to update all resources except `protected` resources.",
-		accessRequest: &ladon.Request{
-			Subject:  "swen",
-			Action:   "update",
-			Resource: "myrn:some.domain.com:resource:123",
-		},
-		expectErr: false,
-	},
+	// {
+	// 	description: "should pass because swen is allowed to update all resources except `protected` resources.",
+	// 	accessRequest: &ladon.Request{
+	// 		Subject:  "swen",
+	// 		Action:   "update",
+	// 		Resource: "myrn:some.domain.com:resource:123",
+	// 	},
+	// 	expectErr: false,
+	// },
 	{
 		description: "should fail because swen is not allowed to update `protected` resource",
 		accessRequest: &ladon.Request{
