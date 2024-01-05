@@ -1,6 +1,3 @@
-//go:build test
-// +build test
-
 /*
  * Copyright © 2016-2018 Aeneas Rekkas <aeneas+oss@aeneas.io>
  *
@@ -21,173 +18,173 @@
  * @license 	Apache-2.0
  */
 
-package ladon
+package ladon_test
 
 import (
 	"fmt"
-	"reflect"
-	"testing"
-
+	"github.com/paullesiak/ladon"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"reflect"
+	"testing"
 )
 
-var TestManagerPolicies = []*DefaultPolicy{
+var TestManagerPolicies = []*ladon.DefaultPolicy{
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"user", "anonymous"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"article", "user"},
 		Actions:     []string{"create", "update"},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"<article|user>"},
 		Actions:     []string{"view"},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{},
 		Actions:     []string{"view"},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{},
 		Actions:     []string{},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"foo"},
 		Actions:     []string{},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"foo"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"foo"},
 		Actions:     []string{},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"foo"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{},
 		Actions:     []string{},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
-		Effect:      AllowAccess,
-		Conditions:  Conditions{},
+		Effect:      ladon.AllowAccess,
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"<peter|max>"},
-		Effect:      DenyAccess,
+		Effect:      ladon.DenyAccess,
 		Resources:   []string{"article", "user"},
 		Actions:     []string{"view"},
-		Conditions: Conditions{
-			"owner": &EqualsSubjectCondition{},
+		Conditions: ladon.Conditions{
+			"owner": &ladon.EqualsSubjectCondition{},
 		},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"<user|max|anonymous>", "peter"},
-		Effect:      DenyAccess,
+		Effect:      ladon.DenyAccess,
 		Resources:   []string{".*"},
 		Actions:     []string{"disable"},
-		Conditions: Conditions{
-			"ip": &CIDRCondition{
+		Conditions: ladon.Conditions{
+			"ip": &ladon.CIDRCondition{
 				CIDR: "1234",
 			},
-			"owner": &EqualsSubjectCondition{},
+			"owner": &ladon.EqualsSubjectCondition{},
 		},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"<.*>"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"<article|user>"},
 		Actions:     []string{"view"},
-		Conditions: Conditions{
-			"ip": &CIDRCondition{
+		Conditions: ladon.Conditions{
+			"ip": &ladon.CIDRCondition{
 				CIDR: "1234",
 			},
-			"owner": &EqualsSubjectCondition{},
+			"owner": &ladon.EqualsSubjectCondition{},
 		},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"<us[er]+>"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"<article|user>"},
 		Actions:     []string{"view"},
-		Conditions: Conditions{
-			"ip": &CIDRCondition{
+		Conditions: ladon.Conditions{
+			"ip": &ladon.CIDRCondition{
 				CIDR: "1234",
 			},
-			"owner": &EqualsSubjectCondition{},
+			"owner": &ladon.EqualsSubjectCondition{},
 		},
 	},
-	//Two new policies which do not persist in MySQL correctly
+	// Two new policies which do not persist in MySQL correctly
 	{
 		ID:          uuid.New(),
 		Description: "A failed policy",
 		Subjects:    []string{"supplier"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"product:<.*>"},
 		Actions:     []string{"update"},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 	{
 		ID:          uuid.New(),
 		Description: "Another failed policy",
 		Subjects:    []string{"buyer"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"products:attributeGroup:<.*>"},
 		Actions:     []string{"create"},
-		Conditions:  Conditions{},
+		Conditions:  ladon.Conditions{},
 	},
 }
 
-var testPolicies = []*DefaultPolicy{
+var testPolicies = []*ladon.DefaultPolicy{
 	{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"sql<.*>match"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"master", "user", "article"},
 		Actions:     []string{"create", "update", "delete"},
-		Conditions: Conditions{
-			"foo": &StringEqualCondition{
+		Conditions: ladon.Conditions{
+			"foo": &ladon.StringEqualCondition{
 				Equals: "foo",
 			},
 		},
@@ -196,11 +193,11 @@ var testPolicies = []*DefaultPolicy{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"sqlmatch"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"master", "user", "article"},
 		Actions:     []string{"create", "update", "delete"},
-		Conditions: Conditions{
-			"foo": &StringEqualCondition{
+		Conditions: ladon.Conditions{
+			"foo": &ladon.StringEqualCondition{
 				Equals: "foo",
 			},
 		},
@@ -209,11 +206,11 @@ var testPolicies = []*DefaultPolicy{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"master", "user", "article"},
 		Actions:     []string{"create", "update", "delete"},
-		Conditions: Conditions{
-			"foo": &StringEqualCondition{
+		Conditions: ladon.Conditions{
+			"foo": &ladon.StringEqualCondition{
 				Equals: "foo",
 			},
 		},
@@ -221,11 +218,11 @@ var testPolicies = []*DefaultPolicy{
 	{
 		ID:          uuid.New(),
 		Description: "description",
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"master", "user", "article"},
 		Actions:     []string{"create", "update", "delete"},
-		Conditions: Conditions{
-			"foo": &StringEqualCondition{
+		Conditions: ladon.Conditions{
+			"foo": &ladon.StringEqualCondition{
 				Equals: "foo",
 			},
 		},
@@ -234,11 +231,11 @@ var testPolicies = []*DefaultPolicy{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"some"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"sqlmatch_resource"},
 		Actions:     []string{"create", "update", "delete"},
-		Conditions: Conditions{
-			"foo": &StringEqualCondition{
+		Conditions: ladon.Conditions{
+			"foo": &ladon.StringEqualCondition{
 				Equals: "foo",
 			},
 		},
@@ -247,18 +244,18 @@ var testPolicies = []*DefaultPolicy{
 		ID:          uuid.New(),
 		Description: "description",
 		Subjects:    []string{"other"},
-		Effect:      AllowAccess,
+		Effect:      ladon.AllowAccess,
 		Resources:   []string{"sql<.*>resource"},
 		Actions:     []string{"create", "update", "delete"},
-		Conditions: Conditions{
-			"foo": &StringEqualCondition{
+		Conditions: ladon.Conditions{
+			"foo": &ladon.StringEqualCondition{
 				Equals: "foo",
 			},
 		},
 	},
 }
 
-func TestHelperFindPoliciesForSubject(k string, s Manager) func(t *testing.T) {
+func HelperTestFindPoliciesForSubject(k string, s ladon.Manager) func(t *testing.T) {
 	return func(t *testing.T) {
 		for _, c := range testPolicies {
 			t.Run(fmt.Sprintf("create=%s", k), func(t *testing.T) {
@@ -266,7 +263,7 @@ func TestHelperFindPoliciesForSubject(k string, s Manager) func(t *testing.T) {
 			})
 		}
 
-		res, err := s.FindRequestCandidates(&Request{
+		res, err := s.FindRequestCandidates(&ladon.Request{
 			Subject:  "sqlmatch",
 			Resource: "article",
 			Action:   "create",
@@ -282,7 +279,7 @@ func TestHelperFindPoliciesForSubject(k string, s Manager) func(t *testing.T) {
 			AssertPolicyEqual(t, testPolicies[1], res[0])
 		}
 
-		res, err = s.FindRequestCandidates(&Request{
+		res, err = s.FindRequestCandidates(&ladon.Request{
 			Subject:  "sqlamatch",
 			Resource: "article",
 			Action:   "create",
@@ -294,7 +291,7 @@ func TestHelperFindPoliciesForSubject(k string, s Manager) func(t *testing.T) {
 	}
 }
 
-func TestHelperFindPoliciesForResource(k string, s Manager) func(t *testing.T) {
+func HelperTestFindPoliciesForResource(k string, s ladon.Manager) func(t *testing.T) {
 	return func(t *testing.T) {
 		for _, c := range testPolicies {
 			t.Run(fmt.Sprintf("create=%s", k), func(t *testing.T) {
@@ -322,15 +319,15 @@ func TestHelperFindPoliciesForResource(k string, s Manager) func(t *testing.T) {
 	}
 }
 
-func AssertPolicyEqual(t *testing.T, expected, got Policy) {
+func AssertPolicyEqual(t *testing.T, expected, got ladon.Policy) {
 	assert.Equal(t, expected.GetID(), got.GetID())
 	assert.Equal(t, expected.GetDescription(), got.GetDescription())
 	assert.Equal(t, expected.GetEffect(), got.GetEffect())
 
 	// This won't work in the memory manager
-	//assert.NotNil(t, got.GetActions())
-	//assert.NotNil(t, got.GetResources())
-	//assert.NotNil(t, got.GetSubjects())
+	// assert.NotNil(t, got.GetActions())
+	// assert.NotNil(t, got.GetResources())
+	// assert.NotNil(t, got.GetSubjects())
 
 	assert.NoError(t, testEq(expected.GetActions(), got.GetActions()))
 	assert.NoError(t, testEq(expected.GetResources(), got.GetResources()))
@@ -340,13 +337,13 @@ func AssertPolicyEqual(t *testing.T, expected, got Policy) {
 
 func testEq(a, b []string) error {
 	// We don't care about nil types
-	//if a == nil && b == nil {
+	// if a == nil && b == nil {
 	//	return true
-	//}
+	// }
 	//
-	//if a == nil || b == nil {
+	// if a == nil || b == nil {
 	//	return false
-	//}
+	// }
 
 	if len(a) != len(b) {
 		return errors.Errorf("Length not equal: %v (%d) != %v (%d)", a, len(a), b, len(b))
@@ -371,7 +368,7 @@ func testEq(a, b []string) error {
 	return nil
 }
 
-func TestHelperGetErrors(s Manager) func(t *testing.T) {
+func HelperTestGetErrors(s ladon.Manager) func(t *testing.T) {
 	return func(t *testing.T) {
 		_, err := s.Get(uuid.New())
 		assert.Error(t, err)
@@ -381,7 +378,7 @@ func TestHelperGetErrors(s Manager) func(t *testing.T) {
 	}
 }
 
-func TestHelperCreateGetDelete(s Manager) func(t *testing.T) {
+func HelperTestCreateGetDelete(s ladon.Manager) func(t *testing.T) {
 	return func(t *testing.T) {
 		for i, c := range TestManagerPolicies {
 			t.Run(fmt.Sprintf("case=%d/id=%s/type=create", i, c.GetID()), func(t *testing.T) {
@@ -454,7 +451,7 @@ func TestHelperCreateGetDelete(s Manager) func(t *testing.T) {
 			assert.Len(t, found, len(TestManagerPolicies))
 
 			for _, f := range found {
-				//This assert is supposed to pass
+				// This assert is supposed to pass
 				assert.Equal(t, 1, f)
 			}
 		})
