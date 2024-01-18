@@ -35,13 +35,13 @@ func NewRegexpMatcher(size int) *RegexpMatcher {
 	if size <= 0 {
 		size = 16 * 1024
 	}
+	size *= 10
 
-	// golang-lru only returns an error if the cache's size is 0. This, we can safely ignore this error.
-	// cache, _ := lru.NewARC(size)
 	cache, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters: 10e7,
+		NumCounters: int64(size),
 		MaxCost:     1 << 30,
 		BufferItems: 64,
+		Metrics:     true,
 	})
 	if err != nil {
 		panic(err)
@@ -68,7 +68,7 @@ func (m *RegexpMatcher) get(pattern string) (bool, bool) {
 }
 
 func (m *RegexpMatcher) set(pattern string, match bool) {
-	m.Cache.Set(pattern, match, 0)
+	m.Cache.Set(pattern, match, int64(len(pattern)))
 }
 
 // Matches a needle with an array of regular expressions and returns true if a match was found.
@@ -109,4 +109,8 @@ func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (boo
 	}
 	m.set(key, matched)
 	return matched, nil
+}
+
+func (m *RegexpMatcher) CacheMetrics() *ristretto.Metrics {
+	return m.Cache.Metrics
 }
