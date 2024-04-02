@@ -24,6 +24,7 @@
 package ladon_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -53,8 +54,10 @@ func benchmarkLadon(i int, b *testing.B, warden *ladon.Ladon) {
 	//	sem <- true
 	//}
 
+	ctx := context.Background()
+
 	for _, pol := range generatePolicies(i) {
-		if err := warden.Manager.Create(pol); err != nil {
+		if err := warden.Manager.Create(ctx, pol); err != nil {
 			b.Logf("Got error from warden.Manager.Create: %s", err)
 		}
 	}
@@ -62,7 +65,7 @@ func benchmarkLadon(i int, b *testing.B, warden *ladon.Ladon) {
 	b.ResetTimer()
 	var err error
 	for n := 0; n < b.N; n++ {
-		if err = warden.IsAllowed(&ladon.Request{
+		if err = warden.IsAllowed(ctx, &ladon.Request{
 			Subject:  "5",
 			Action:   "bar",
 			Resource: "baz",

@@ -22,6 +22,7 @@ package ladon_test
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"testing"
 
@@ -42,21 +43,23 @@ func TestAuditLogger(t *testing.T) {
 		},
 	}
 
-	warden.Manager.Create(&DefaultPolicy{
+	ctx := context.Background()
+
+	warden.Manager.Create(ctx, &DefaultPolicy{
 		ID:        "no-updates",
 		Subjects:  []string{"<.*>"},
 		Actions:   []string{"update"},
 		Resources: []string{"<.*>"},
 		Effect:    DenyAccess,
 	})
-	warden.Manager.Create(&DefaultPolicy{
+	warden.Manager.Create(ctx, &DefaultPolicy{
 		ID:        "yes-deletes",
 		Subjects:  []string{"<.*>"},
 		Actions:   []string{"delete"},
 		Resources: []string{"<.*>"},
 		Effect:    AllowAccess,
 	})
-	warden.Manager.Create(&DefaultPolicy{
+	warden.Manager.Create(ctx, &DefaultPolicy{
 		ID:        "no-bob",
 		Subjects:  []string{"bob"},
 		Actions:   []string{"delete"},
@@ -65,7 +68,7 @@ func TestAuditLogger(t *testing.T) {
 	})
 
 	r := &Request{}
-	assert.NotNil(t, warden.IsAllowed(r))
+	assert.NotNil(t, warden.IsAllowed(ctx, r))
 	assert.Equal(t, "no policy allowed access\n", output.String())
 
 	output.Reset()
@@ -73,7 +76,7 @@ func TestAuditLogger(t *testing.T) {
 	r = &Request{
 		Action: "update",
 	}
-	assert.NotNil(t, warden.IsAllowed(r))
+	assert.NotNil(t, warden.IsAllowed(ctx, r))
 	assert.Equal(t, "policy no-updates forcefully denied the access\n", output.String())
 
 	output.Reset()
@@ -82,7 +85,7 @@ func TestAuditLogger(t *testing.T) {
 		Subject: "bob",
 		Action:  "delete",
 	}
-	assert.NotNil(t, warden.IsAllowed(r))
+	assert.NotNil(t, warden.IsAllowed(ctx, r))
 	assert.Equal(t, "policies yes-deletes allow access, but policy no-bob forcefully denied it\n", output.String())
 
 	output.Reset()
@@ -91,6 +94,6 @@ func TestAuditLogger(t *testing.T) {
 		Subject: "alice",
 		Action:  "delete",
 	}
-	assert.Nil(t, warden.IsAllowed(r))
+	assert.Nil(t, warden.IsAllowed(ctx, r))
 	assert.Equal(t, "policies yes-deletes allow access\n", output.String())
 }
