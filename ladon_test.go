@@ -23,11 +23,13 @@ package ladon_test
 import (
 	"context"
 	"fmt"
-	. "github.com/paullesiak/ladon"
-	. "github.com/paullesiak/ladon/manager/memory"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	. "github.com/paullesiak/ladon"
+	. "github.com/paullesiak/ladon/manager/memory"
 )
 
 // A bunch of exemplary policies

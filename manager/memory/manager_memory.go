@@ -25,9 +25,9 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/ory/pagination"
 	"github.com/pkg/errors"
 
-	"github.com/ory/pagination"
 	. "github.com/paullesiak/ladon"
 )
 

@@ -5,11 +5,11 @@
 package ladon_test
 
 import (
+	context "context"
 	"reflect"
 
-	context "context"
-
 	gomock "github.com/golang/mock/gomock"
+
 	ladon "github.com/paullesiak/ladon"
 )
 

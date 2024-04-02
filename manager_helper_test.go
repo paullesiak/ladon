@@ -26,11 +26,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/paullesiak/ladon"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/paullesiak/ladon"
 )
 
 var TestManagerPolicies = []*ladon.DefaultPolicy{
