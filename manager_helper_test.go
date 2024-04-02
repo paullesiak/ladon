@@ -21,14 +21,17 @@
 package ladon_test
 
 import (
+	"context"
 	"fmt"
-	"github.com/paullesiak/ladon"
+	"reflect"
+	"testing"
+
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"reflect"
-	"testing"
+
+	"github.com/paullesiak/ladon"
 )
 
 var TestManagerPolicies = []*ladon.DefaultPolicy{
@@ -256,14 +259,16 @@ var testPolicies = []*ladon.DefaultPolicy{
 }
 
 func HelperTestFindPoliciesForSubject(k string, s ladon.Manager) func(t *testing.T) {
+	ctx := context.Background()
+
 	return func(t *testing.T) {
 		for _, c := range testPolicies {
 			t.Run(fmt.Sprintf("create=%s", k), func(t *testing.T) {
-				require.NoError(t, s.Create(c))
+				require.NoError(t, s.Create(ctx, c))
 			})
 		}
 
-		res, err := s.FindRequestCandidates(&ladon.Request{
+		res, err := s.FindRequestCandidates(ctx, &ladon.Request{
 			Subject:  "sqlmatch",
 			Resource: "article",
 			Action:   "create",
@@ -279,7 +284,7 @@ func HelperTestFindPoliciesForSubject(k string, s ladon.Manager) func(t *testing
 			AssertPolicyEqual(t, testPolicies[1], res[0])
 		}
 
-		res, err = s.FindRequestCandidates(&ladon.Request{
+		res, err = s.FindRequestCandidates(ctx, &ladon.Request{
 			Subject:  "sqlamatch",
 			Resource: "article",
 			Action:   "create",
@@ -292,14 +297,16 @@ func HelperTestFindPoliciesForSubject(k string, s ladon.Manager) func(t *testing
 }
 
 func HelperTestFindPoliciesForResource(k string, s ladon.Manager) func(t *testing.T) {
+	ctx := context.Background()
+
 	return func(t *testing.T) {
 		for _, c := range testPolicies {
 			t.Run(fmt.Sprintf("create=%s", k), func(t *testing.T) {
-				require.NoError(t, s.Create(c))
+				require.NoError(t, s.Create(ctx, c))
 			})
 		}
 
-		res, err := s.FindPoliciesForResource("sqlmatch_resource")
+		res, err := s.FindPoliciesForResource(ctx, "sqlmatch_resource")
 		require.NoError(t, err)
 		require.Len(t, res, 2)
 
@@ -311,7 +318,7 @@ func HelperTestFindPoliciesForResource(k string, s ladon.Manager) func(t *testin
 			AssertPolicyEqual(t, testPolicies[len(testPolicies)-1], res[0])
 		}
 
-		res, err = s.FindPoliciesForResource("sqlamatch_resource")
+		res, err = s.FindPoliciesForResource(ctx, "sqlamatch_resource")
 
 		require.NoError(t, err)
 		require.Len(t, res, 1)
@@ -337,13 +344,13 @@ func AssertPolicyEqual(t *testing.T, expected, got ladon.Policy) {
 
 func testEq(a, b []string) error {
 	// We don't care about nil types
-	// if a == nil && b == nil {
+	//if a == nil && b == nil {
 	//	return true
-	// }
+	//}
 	//
-	// if a == nil || b == nil {
+	//if a == nil || b == nil {
 	//	return false
-	// }
+	//}
 
 	if len(a) != len(b) {
 		return errors.Errorf("Length not equal: %v (%d) != %v (%d)", a, len(a), b, len(b))
@@ -369,26 +376,30 @@ func testEq(a, b []string) error {
 }
 
 func HelperTestGetErrors(s ladon.Manager) func(t *testing.T) {
+	ctx := context.Background()
+
 	return func(t *testing.T) {
-		_, err := s.Get(uuid.New())
+		_, err := s.Get(ctx, uuid.New())
 		assert.Error(t, err)
 
-		_, err = s.Get("asdf")
+		_, err = s.Get(ctx, "asdf")
 		assert.Error(t, err)
 	}
 }
 
 func HelperTestCreateGetDelete(s ladon.Manager) func(t *testing.T) {
+	ctx := context.Background()
+
 	return func(t *testing.T) {
 		for i, c := range TestManagerPolicies {
 			t.Run(fmt.Sprintf("case=%d/id=%s/type=create", i, c.GetID()), func(t *testing.T) {
-				_, err := s.Get(c.GetID())
+				_, err := s.Get(ctx, c.GetID())
 				require.Error(t, err)
-				require.NoError(t, s.Create(c))
+				require.NoError(t, s.Create(ctx, c))
 			})
 
 			t.Run(fmt.Sprintf("case=%d/id=%s/type=query", i, c.GetID()), func(t *testing.T) {
-				get, err := s.Get(c.GetID())
+				get, err := s.Get(ctx, c.GetID())
 				require.NoError(t, err)
 
 				AssertPolicyEqual(t, c, get)
@@ -396,16 +407,16 @@ func HelperTestCreateGetDelete(s ladon.Manager) func(t *testing.T) {
 
 			t.Run(fmt.Sprintf("case=%d/id=%s/type=update", i, c.GetID()), func(t *testing.T) {
 				c.Description = c.Description + "_updated"
-				require.NoError(t, s.Update(c))
+				require.NoError(t, s.Update(ctx, c))
 
-				get, err := s.Get(c.GetID())
+				get, err := s.Get(ctx, c.GetID())
 				require.NoError(t, err)
 
 				AssertPolicyEqual(t, c, get)
 			})
 
 			t.Run(fmt.Sprintf("case=%d/id=%s/type=query", i, c.GetID()), func(t *testing.T) {
-				get, err := s.Get(c.GetID())
+				get, err := s.Get(ctx, c.GetID())
 				require.NoError(t, err)
 
 				AssertPolicyEqual(t, c, get)
@@ -415,19 +426,19 @@ func HelperTestCreateGetDelete(s ladon.Manager) func(t *testing.T) {
 		t.Run("type=query-all", func(t *testing.T) {
 			count := int64(len(TestManagerPolicies))
 
-			pols, err := s.GetAll(100, 0)
+			pols, err := s.GetAll(ctx, 100, 0)
 			require.NoError(t, err)
 			assert.Len(t, pols, len(TestManagerPolicies))
 
-			pols4, err := s.GetAll(1, 0)
+			pols4, err := s.GetAll(ctx, 1, 0)
 			require.NoError(t, err)
 			assert.Len(t, pols4, 1)
 
-			pols2, err := s.GetAll(100, count-1)
+			pols2, err := s.GetAll(ctx, 100, count-1)
 			require.NoError(t, err)
 			assert.Len(t, pols2, 1)
 
-			pols3, err := s.GetAll(100, count)
+			pols3, err := s.GetAll(ctx, 100, count)
 			require.NoError(t, err)
 			assert.Len(t, pols3, 0)
 
@@ -458,9 +469,9 @@ func HelperTestCreateGetDelete(s ladon.Manager) func(t *testing.T) {
 
 		for i, c := range TestManagerPolicies {
 			t.Run(fmt.Sprintf("case=%d/id=%s/type=delete", i, c.GetID()), func(t *testing.T) {
-				assert.NoError(t, s.Delete(c.ID))
+				assert.NoError(t, s.Delete(ctx, c.ID))
 
-				_, err := s.Get(c.GetID())
+				_, err := s.Get(ctx, c.GetID())
 				assert.Error(t, err)
 			})
 		}
