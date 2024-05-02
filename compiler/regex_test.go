@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRegexCompiler(t *testing.T) {
@@ -70,4 +71,11 @@ func TestRegexCompiler(t *testing.T) {
 		ok := re.MatchString(c.matchAgainst)
 		assert.Equal(t, !c.failMatch, ok, "Case %d", k)
 	}
+}
+
+func TestProtected(t *testing.T) {
+	re := `<(?!protected).*>`
+	r, err := regexp.Compile(re)
+	require.NoError(t, err)
+	require.True(t, r.MatchString("<protectedsomething>"))
 }

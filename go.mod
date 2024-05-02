@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/dgraph-io/ristretto v0.1.1
+	github.com/goccy/go-json v0.10.2
 	github.com/golang/mock v1.6.0
 	github.com/ory/pagination v0.0.1
 	github.com/pborman/uuid v1.2.1
