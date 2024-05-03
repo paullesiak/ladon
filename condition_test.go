@@ -21,9 +21,9 @@
 package ladon
 
 import (
-	"encoding/json"
 	"testing"
 
+	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

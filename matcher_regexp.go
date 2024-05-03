@@ -21,7 +21,7 @@
 package ladon
 
 import (
-	"fmt"
+	"hash/fnv"
 	"regexp"
 	"strings"
 
@@ -73,13 +73,14 @@ func (m *RegexpMatcher) set(pattern string, match bool) {
 
 // Matches a needle with an array of regular expressions and returns true if a match was found.
 func (m *RegexpMatcher) Matches(p Policy, haystack []string, needle string) (bool, error) {
-	key := fmt.Sprintf("%s+%s", strings.Join(haystack, ","), needle)
+	keyHash := fnv.New64()
+	_, _ = keyHash.Write([]byte(needle))
+	for i := 0; i < len(haystack); i++ {
+		_, _ = keyHash.Write([]byte(haystack[i]))
+	}
+	key := string(keyHash.Sum(nil))
 	if matched, ok := m.get(key); ok {
-		if matched {
-			return true, nil
-		} else {
-			return false, nil
-		}
+		return matched, nil
 	}
 
 	matched := false
