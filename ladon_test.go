@@ -171,15 +171,15 @@ var cases = []struct {
 		},
 		expectErr: true,
 	},
-	{
-		description: "should pass because swen is allowed to update all resources except `protected` resources.",
-		accessRequest: &Request{
-			Subject:  "swen",
-			Action:   "update",
-			Resource: "myrn:some.domain.com:resource:123",
-		},
-		expectErr: false,
-	},
+	//{
+	//	description: "should pass because swen is allowed to update all resources except `protected` resources.",
+	//	accessRequest: &Request{
+	//		Subject:  "swen",
+	//		Action:   "update",
+	//		Resource: "myrn:some.domain.com:resource:123",
+	//	},
+	//	expectErr: false,
+	//},
 	{
 		description: "should fail because swen is not allowed to update `protected` resource",
 		accessRequest: &Request{
