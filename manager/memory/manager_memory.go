@@ -24,10 +24,8 @@ import (
 	"context"
 	"sort"
 	"sync"
-
 	"github.com/ory/pagination"
 	"github.com/pkg/errors"
-
 	. "github.com/paullesiak/ladon"
 )
 
@@ -74,7 +72,7 @@ func (m *MemoryManager) GetAll(ctx context.Context, limit, offset int64) (Polici
 	return ps, nil
 }
 
-// Create a new pollicy to MemoryManager.
+// Create a new policy to MemoryManager.
 func (m *MemoryManager) Create(ctx context.Context, policy Policy) error {
 	m.Lock()
 	defer m.Unlock()
