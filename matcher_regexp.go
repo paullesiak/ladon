@@ -22,7 +22,6 @@ package ladon
 
 import (
 	"hash/fnv"
-	"regexp"
 	"strings"
 
 	"github.com/dgraph-io/ristretto"
@@ -37,12 +36,13 @@ func NewRegexpMatcher(size int) *RegexpMatcher {
 	}
 	size *= 10
 
-	cache, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters: int64(size),
-		MaxCost:     1 << 30,
-		BufferItems: 64,
-		Metrics:     true,
-	})
+	cache, err := ristretto.NewCache[string, bool](
+		&ristretto.Config[string, bool]{
+			NumCounters: int64(size),
+			MaxCost:     1 << 30,
+			BufferItems: 64,
+			Metrics:     true,
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -52,19 +52,15 @@ func NewRegexpMatcher(size int) *RegexpMatcher {
 }
 
 type RegexpMatcher struct {
-	Cache *ristretto.Cache
-
-	C map[string]*regexp.Regexp
+	Cache *ristretto.Cache[string, bool]
 }
 
 func (m *RegexpMatcher) get(pattern string) (bool, bool) {
-	if val, ok := m.Cache.Get(pattern); !ok {
+	val, ok := m.Cache.Get(pattern)
+	if !ok {
 		return false, false
-	} else if match, ok := val.(bool); !ok {
-		return false, true
-	} else {
-		return match, true
 	}
+	return val, true
 }
 
 func (m *RegexpMatcher) set(pattern string, match bool) {
