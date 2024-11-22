@@ -24,7 +24,7 @@ import (
 	"hash/fnv"
 	"strings"
 
-	"github.com/dgraph-io/ristretto"
+	"github.com/dgraph-io/ristretto/v2"
 	"github.com/pkg/errors"
 
 	"github.com/paullesiak/ladon/compiler"
